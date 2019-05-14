@@ -237,19 +237,21 @@ void normalizarRGB(double **A, int n, int m){
     }
 }
 
-void Ler_arquivo(double **W, int n, int m, char *arquivo){
+double** Ler_arquivo(int n, int m, char *arquivo){
   FILE *fpointer = fopen(arquivo, "r");
-  char p, q;
+  double** W = createMatrix(n, m);
+  char d, q;
 
   for(int k = 0; k < n; k++){
-      for(int j = 0; p != '\r' && p != '\n' && p != EOF; j++ ){
-        fscanf(fpointer,"%d%c", &q, &p);
+      for(int j = 0; d != '\r' && d != '\n' && d != EOF; j++ ){
+        fscanf(fpointer,"%d%c", &q, &d);
         if(j < m)
           W[k][j] = (double) q/255.0;
       }
-      p = '\0';
+      d = '\0';
   }
   fclose(fpointer);
+  return W;
 }
 
 int main () {
@@ -259,7 +261,8 @@ int main () {
         double** H = createMatrix(p, ndig_treino);
         double** A0 = createMatrix(784, ndig_treino);
         double** W0 = createMatrix(784, p);
-        Ler_arquivo(A0, 784, ndig_treino, "train_dig0");
+        printMatrix(A0, 784, ndig_treino);
+        A0 = Ler_arquivo(784, ndig_treino, "train_dig0");
         MMQ_Alternados(W0, A0, H, 784, p, ndig_treino);
         deleteMatrix(A0);
         deleteMatrix(H);
