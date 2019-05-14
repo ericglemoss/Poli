@@ -200,12 +200,11 @@ void MMQ_Alternados(double** W, double** A, double** H, int n, int p, int m){
     double soma_erro = 0;
 
     CreatecopiaA(B, A, n, m);
-    while(itmax < 100 & E_atual > 0.000001){
+    while(itmax < 100 & Er > 0.000001){
       E_atual = 0;
       H = createMatrix(p, m);
       W_t = createMatrix(p, n);
       CreatecopiaA(A, B, n, m);
-      printf("%d\n", itmax);
       itmax += 1;
       NormalizeColumns(W, n, p);
       solveMultipleSystems(W, n, p, m, H, A);
@@ -216,31 +215,19 @@ void MMQ_Alternados(double** W, double** A, double** H, int n, int p, int m){
       W = matrixTransposte(W_t, p, n);
       DefineMax(W, n, p);
       A_aprox = MatrixMultiplication(W, H, n, m, p);
-      printf("B\n");
-      printMatrix(B, n, m);
-      printf("A_aprox\n");
       printMatrix(A_aprox, n, m);
       for (int i = 0; i < n; i++){
         for (int j = 0; j < m; j++ )
             E_atual += pow(B[i][j] - A_aprox[i][j], 2 );
       }
-      Er = fabs(E_atual-E_ant);
+      Er = fabs(E_atual-E_ant)/E_atual;
       E_ant = E_atual;
-      printf("W\n");
-      printMatrix(W, n, p);
-      printf("H\n");
-      printMatrix(H, p, m);
-      printf("%2.6f\n", Er);
     }
-}
-
-double** empilharMatriz(double **W, int n, int m){
-    double **M = createMatrix(n*n, 1);
-    for (int i = 1; i<=n; i++){
-      for (int j = i; j<=m; j++)
-        M[(i*j)-1][0] = W[j-1][i-1];
-    }
-  return M;
+    deleteMatrix(A_t);
+    deleteMatrix(H_t);
+    deleteMatrix(W_t);
+    deleteMatrix(B);
+    deleteMatrix(A_aprox);
 }
 
 void normalizarRGB(double **A, int n, int m){
@@ -250,29 +237,31 @@ void normalizarRGB(double **A, int n, int m){
     }
 }
 
+void Ler_arquivo(double **W, int n, int m, char *arquivo){
+  FILE *fpointer = fopen(arquivo, "r");
+  char p, q;
+
+  for(int k = 0; k < n; k++){
+      for(int j = 0; p != '\r' && p != '\n' && p != EOF; j++ ){
+        fscanf(fpointer,"%d%c", &q, &p);
+        if(j < m)
+          W[k][j] = (double) q/255.0;
+      }
+      p = '\0';
+  }
+  fclose(fpointer);
+}
+
 int main () {
 
-        int ndig_treino;
+        int ndig_treino = 100;
+        int p = 5;
+        double** H = createMatrix(p, ndig_treino);
         double** A0 = createMatrix(784, ndig_treino);
-        double** A1 = createMatrix(784, ndig_treino);
-        double** A2 = createMatrix(784, ndig_treino);
-        double** A3 = createMatrix(784, ndig_treino);
-        double** A4 = createMatrix(784, ndig_treino);
-        double** A5 = createMatrix(784, ndig_treino);
-        double** A6 = createMatrix(784, ndig_treino);
-        double** A7 = createMatrix(784, ndig_treino);
-        double** A8 = createMatrix(784, ndig_treino);
-        double** A9 = createMatrix(784, ndig_treino);
-        double** W0 = createMatrix(784, ndig_treino);
-        double** W1 = createMatrix(784, ndig_treino);
-        double** W2 = createMatrix(784, ndig_treino);
-        double** W3 = createMatrix(784, ndig_treino);
-        double** W4 = createMatrix(784, ndig_treino);
-        double** W5 = createMatrix(784, ndig_treino);
-        double** W6 = createMatrix(784, ndig_treino);
-        double** W7 = createMatrix(784, ndig_treino);
-        double** W8 = createMatrix(784, ndig_treino);
-        double** W9 = createMatrix(784, ndig_treino);
-        
+        double** W0 = createMatrix(784, p);
+        Ler_arquivo(A0, 784, ndig_treino, "train_dig0");
+        MMQ_Alternados(W0, A0, H, 784, p, ndig_treino);
+        deleteMatrix(A0);
+        deleteMatrix(H);
   return 0;
 }
